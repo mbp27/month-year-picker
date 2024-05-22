@@ -121,6 +121,9 @@ class MonthPickerState extends State<MonthPicker> {
     while (newDate.isAfter(widget.lastDate)) {
       newDate = newDate.subtract(const Duration(days: 1));
     }
+    while (newDate.isBefore(widget.firstDate)) {
+      newDate = newDate.add(const Duration(days: 1));
+    }
     widget.onPageChanged(newDate);
   }
 }
@@ -234,7 +237,17 @@ class YearPickerState extends State<YearPicker> {
 
   void _onPageChanged(final int page) {
     _currentPage = page;
-    widget.onPageChanged(DateTime(widget.firstDate.year + (page * 12)));
+    var newDate = DateTime(
+      widget.firstDate.year + (page * 12),
+      widget.selectedDate.month,
+    );
+    while (newDate.isAfter(widget.lastDate)) {
+      newDate = DateTime(newDate.year, newDate.month - 1);
+    }
+    while (newDate.isBefore(widget.firstDate)) {
+      newDate = DateTime(newDate.year, newDate.month + 1);
+    }
+    widget.onPageChanged(newDate);
   }
 }
 
@@ -365,7 +378,9 @@ class _Button extends StatelessWidget {
     return TextButton(
       onPressed: isEnabled ? onPressed : null,
       style: TextButton.styleFrom(
-        foregroundColor: buttonText, backgroundColor: buttonBackground, disabledForegroundColor: buttonText.withOpacity(0.38),
+        foregroundColor: buttonText,
+        backgroundColor: buttonBackground,
+        disabledForegroundColor: buttonText.withOpacity(0.38),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(100.0),
         ),

@@ -19,3 +19,17 @@
 
 ## v0.2.0+3
 - Added Japanese (ja) localisation. ([@kogepan159](https://github.com/kogepan159))
+
+## v0.2.0+4
+- Added Thailand (th) localisation. ([@STP-PMT](https://github.com/STP-PMT))
+- Added Korean (ko) localisation. ([@hawk0530-mintsoft](https://github.com/hawk0530-mintsoft))
+- Added Turkish (tr) localisation. ([@azerturk](https://github.com/azerturk))
+
+## v0.3.0+1
+- **BREAKING CHANGES**: Upgraded to Dart 3 and Flutter 3.10 SDK.
+
+## v0.4.0+1
+- **BREAKING CHANGES**: Upgraded to Dart 3.4 and Flutter 3.22 SDK.
+
+## v0.5.0+1
+- **BREAKING CHANGES**: Upgraded to Dart 3.8 and Flutter 3.32 SDK.

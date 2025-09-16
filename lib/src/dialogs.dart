@@ -1,5 +1,4 @@
-import 'dart:math' as math;
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide YearPicker;
 
 import 'l10n/month_year_picker_localizations.dart';
@@ -34,7 +33,7 @@ Future<DateTime?> showMonthYearPicker({
   TextDirection? textDirection,
   TransitionBuilder? builder,
   MonthYearPickerMode initialMonthYearPickerMode = MonthYearPickerMode.month,
-}) async {
+}) {
   initialDate = monthYearOnly(initialDate);
   firstDate = monthYearOnly(firstDate);
   lastDate = monthYearOnly(lastDate);
@@ -51,9 +50,18 @@ Future<DateTime?> showMonthYearPicker({
     !initialDate.isAfter(lastDate),
     'initialDate $initialDate must be on or before lastDate $lastDate.',
   );
-  assert(debugCheckHasMaterialLocalizations(context));
-  assert(debugCheckHasMonthYearPickerLocalizations(context));
-  assert(debugCheckHasDirectionality(context));
+  assert(
+    debugCheckHasMaterialLocalizations(context),
+    'No MaterialLocalizations found.',
+  );
+  assert(
+    debugCheckHasMonthYearPickerLocalizations(context),
+    'No MonthYearPickerLocalizations found.',
+  );
+  assert(
+    debugCheckHasDirectionality(context),
+    'No Directionality found.',
+  );
 
   Widget dialog = MonthYearPickerDialog(
     initialDate: initialDate,
@@ -81,7 +89,7 @@ Future<DateTime?> showMonthYearPicker({
     );
   }
 
-  return await showDialog<DateTime>(
+  return showDialog<DateTime>(
     context: context,
     useRootNavigator: useRootNavigator,
     routeSettings: routeSettings,
@@ -99,7 +107,7 @@ enum MonthYearPickerMode {
 class MonthYearPickerDialog extends StatefulWidget {
   // ------------------------------- CONSTRUCTORS ------------------------------
   const MonthYearPickerDialog({
-    Key? key,
+    super.key,
     required this.initialDate,
     required this.firstDate,
     required this.lastDate,
@@ -108,7 +116,7 @@ class MonthYearPickerDialog extends StatefulWidget {
     this.cancelText,
     this.confirmText,
     this.selectableMonthYearPredicate,
-  }) : super(key: key);
+  });
 
   // ---------------------------------- FIELDS ---------------------------------
   final DateTime initialDate;
@@ -123,6 +131,27 @@ class MonthYearPickerDialog extends StatefulWidget {
   // --------------------------------- METHODS ---------------------------------
   @override
   State<MonthYearPickerDialog> createState() => _MonthYearPickerDialogState();
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(DiagnosticsProperty<DateTime>('initialDate', initialDate))
+      ..add(DiagnosticsProperty<DateTime>('firstDate', firstDate))
+      ..add(DiagnosticsProperty<DateTime>('lastDate', lastDate))
+      ..add(
+        EnumProperty<MonthYearPickerMode>(
+          'initialMonthYearPickerMode',
+          initialMonthYearPickerMode,
+        ),
+      )
+      ..add(
+        ObjectFlagProperty<SelectableMonthYearPredicate?>.has(
+          'selectableMonthYearPredicate',
+          selectableMonthYearPredicate,
+        ),
+      );
+  }
 }
 
 class _MonthYearPickerDialogState extends State<MonthYearPickerDialog> {
@@ -171,7 +200,7 @@ class _MonthYearPickerDialogState extends State<MonthYearPickerDialog> {
     final textTheme = theme.textTheme;
     // Constrain the textScaleFactor to the largest supported value to prevent
     // layout issues.
-    final textScaleFactor = math.min(media.textScaleFactor, 1.3);
+    final textScaler = media.textScaler;
     final direction = Directionality.of(context);
 
     final dateText = materialLocalizations.formatMonthYear(_selectedDate);
@@ -261,7 +290,7 @@ class _MonthYearPickerDialogState extends State<MonthYearPickerDialog> {
                 ),
                 splashRadius: 24,
                 onPressed: _canGoNext ? _goToNextPage : null,
-              )
+              ),
             ],
           ),
         ),
@@ -315,13 +344,12 @@ class _MonthYearPickerDialogState extends State<MonthYearPickerDialog> {
                       widget.selectableMonthYearPredicate,
                 ),
               ),
-            )
+            ),
           ],
         );
       },
     );
 
-    final dialogSize = _dialogSize * textScaleFactor;
     return Directionality(
       textDirection: direction,
       child: Dialog(
@@ -331,14 +359,12 @@ class _MonthYearPickerDialogState extends State<MonthYearPickerDialog> {
         ),
         clipBehavior: Clip.antiAlias,
         child: AnimatedContainer(
-          width: dialogSize.width,
-          height: dialogSize.height,
+          width: textScaler.scale(_dialogSize.width),
+          height: textScaler.scale(_dialogSize.height),
           duration: _dialogSizeAnimationDuration,
           curve: Curves.easeIn,
           child: MediaQuery(
-            data: MediaQuery.of(context).copyWith(
-              textScaleFactor: textScaleFactor,
-            ),
+            data: MediaQuery.of(context).copyWith(textScaler: textScaler),
             child: Builder(
               builder: (context) {
                 switch (orientation) {
@@ -412,33 +438,24 @@ class _MonthYearPickerDialogState extends State<MonthYearPickerDialog> {
     }
   }
 
-  void _goToPreviousPage() {
-    if (_isShowingYear) {
-      _yearPickerState.currentState!.goDown();
-    } else {
-      _monthPickerState.currentState!.goDown();
-    }
-  }
+  Future<void> _goToPreviousPage() => _isShowingYear
+      ? _yearPickerState.currentState!.goDown()
+      : _monthPickerState.currentState!.goDown();
 
-  void _goToNextPage() {
-    if (_isShowingYear) {
-      _yearPickerState.currentState!.goUp();
-    } else {
-      _monthPickerState.currentState!.goUp();
-    }
-  }
+  Future<void> _goToNextPage() => _isShowingYear
+      ? _yearPickerState.currentState!.goUp()
+      : _monthPickerState.currentState!.goUp();
 }
 
 class _Header extends StatelessWidget {
   // ------------------------------- CONSTRUCTORS ------------------------------
   const _Header({
-    Key? key,
     required this.helpText,
     required this.titleText,
     this.titleSemanticsLabel,
     required this.titleStyle,
     required this.orientation,
-  }) : super(key: key);
+  });
 
   // ---------------------------------- FIELDS ---------------------------------
   final String helpText;
@@ -533,5 +550,16 @@ class _Header extends StatelessWidget {
           ),
         );
     }
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties
+      ..add(StringProperty('helpText', helpText))
+      ..add(StringProperty('titleText', titleText))
+      ..add(StringProperty('titleSemanticsLabel', titleSemanticsLabel))
+      ..add(DiagnosticsProperty<TextStyle?>('titleStyle', titleStyle))
+      ..add(EnumProperty<Orientation>('orientation', orientation));
   }
 }
